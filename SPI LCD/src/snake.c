@@ -23,6 +23,7 @@ void playSnake(void){
 	
 	//ioport_configure_port_pin(&PORTF, PIN1_bm, IOPORT_DIR_INPUT);
 	//ioport_configure_port_pin(&PORTF, PIN2_bm, IOPORT_DIR_INPUT);
+	MLCDClear();
 	
 	for(i=0;i<length;i++){
 		positionX[i]=column;

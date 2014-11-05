@@ -42,7 +42,7 @@ void adc_init(void){
 	
 	adc_read_configuration(&MY_ADC, &adc_conf);
 	adcch_read_configuration(&MY_ADC, ADC_CH0, &adcch_conf);
-	adc_set_conversion_parameters(&adc_conf, ADC_SIGN_ON, ADC_RES_12, ADC_REF_BANDGAP);
+	adc_set_conversion_parameters(&adc_conf, ADC_SIGN_ON, ADC_RES_12, ADC_REFSEL_INT1V_gc);
 	adc_set_conversion_trigger(&adc_conf, ADC_TRIG_MANUAL, 1, 0);
 	adc_set_clock_rate(&adc_conf, ADC_FREQ);
 	//adc_enable_internal_input(&adc_conf, ADC_INT_BANDGAP);
@@ -69,7 +69,7 @@ double getADCVoltage(uint8_t adc_pin, float oversampling){
 			return 0;
 	}*/
 	
-	return getADCManualValue(adc_pin, oversampling)*ADC_REF_VOLTAGE/ADC_RESULT_MAX;
+	return getADCManualValue(adc_pin, oversampling)*ADC_REF_VOLTAGE/(ADC_RESULT_MAX);
 	
 }
 
@@ -99,7 +99,7 @@ double getADCManualValue(uint8_t adc_pin, float oversampling){
 	int16_t ADCValue = 0;
 	
 	adcch_read_configuration(&MY_ADC, ADC_CH0, &adcch_conf);
-	adcch_set_input(&adcch_conf, adc_pin, ADCCH_NEG_NONE, 1);
+	adcch_set_input(&adcch_conf, adc_pin, ADCCH_NEG_NONE, ADC_GAIN);
 	adcch_write_configuration(&MY_ADC, ADC_CH0, &adcch_conf);
 	
 	adc_start_conversion(&MY_ADC, ADC_CH0);

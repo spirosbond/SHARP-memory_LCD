@@ -58,6 +58,7 @@ int main (void)
 	pmic_init();
 	adc_enable(&MY_ADC);
 	
+	//playSnake();
 	/*while(linenum%(MLCD_YRES+1)!=0){
 		
 		MLCDWriteLine(data,linenum++);
@@ -65,95 +66,57 @@ int main (void)
 	}*/
 	
 	while(1){
-	/*	
-		LED_On(LED0);
-		MLCDWriteFrame(frame);
-		delay_ms(1000);
-		LED_Off(LED0);
-		
-		LED_On(LED1);
-		showRandomFrame();
-		delay_ms(1000);
-		LED_Off(LED1);
-		
-		LED_On(LED1);
-		LED_On(LED0);
-		MLCDShowImecLogo();
-		delay_ms(1000);
-		LED_Off(LED0);
-		LED_Off(LED1);
-		
-		MLCDUpdateByte(MLCD_BYTE_WHITE, 240, 50);
-		MLCDUpdateByte(MLCD_BYTE_WHITE, 239, 50);
-		MLCDUpdateByte(MLCD_BYTE_WHITE, 238, 50);
-		MLCDRefreshFrame();
-		delay_ms(1000);
-		
-		MLCDUpdatePixel(4,MLCD_PIXEL_BLACK,239,50);
-		MLCDRefreshFrame();
-		delay_ms(1000);
-		
-		MLCDUpdatePixel(4,MLCD_PIXEL_WHITE,239,50);
-		MLCDRefreshFrame();
-		delay_ms(1000);
-*/
-		/*LED_On(LED1);
-
-		MLCDWriteString("!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOP QRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",1,1,false);
-		MLCDWriteString("!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOP QRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",FONT_HEIGHT_ROWS*4,1,true);
-		MLCDRefreshFrame();
-		delay_ms(2000);
-		LED_Off(LED1);
 		
 		MLCDClear();
+
+		MLCDDrawColumn(220,2,2,rand()%201,false);
+		MLCDDrawColumn(220,5,3,rand()%201,false);
+		MLCDDrawColumn(220,9,4,rand()%201,false);
 		
-		MLCDDrawSquare(5, 10, 20,false);
-		MLCDDrawSquare(10, 100, 45,false);
-		MLCDDrawSquare(10, 161, 30,false);
-		MLCDDrawSquare(10, 220, 5,false);
-		//MLCDDrawSquare(10, 220, 45,false);
-		MLCDRefreshFrame();
-		delay_ms(1000);*/
-		/*
-		MLCDDrawSnakeBait(120,25,false);
-		MLCDRefreshFrame();
-		delay_ms(1000);*/
-		//MLCDDrawSquare(1, 234, 20,false);
-		//MLCDRefreshFrame();
-		/*if(gpio_pin_is_low(GPIO_PUSH_BUTTON_1) && gpio_pin_is_low(GPIO_PUSH_BUTTON_0)){
-			MLCDClear();
-			playSnake();
-		}
-		*/
-		//MLCDClear();
-		MLCDWriteString("ADC_RESULT_4: ",1,1,MLCD_BLACK);
-		MLCDWriteString("ADC_RESULT_4: ",31,1,MLCD_BLACK);
-		MLCDWriteString("ADC_RESULT_5: ",71,1,MLCD_BLACK);
-		MLCDWriteString("ADC_RESULT_5: ",101,1,MLCD_BLACK);
-		/*MLCDWriteUInt(0, 21, 24, MLCD_BLACK);
-		MLCDWriteUInt(123456, 41, 24, MLCD_BLACK);
-		MLCDWriteUFloat(123.1,61,24,MLCD_BLACK);
-		MLCDWriteUFloat(32.129,81,24,MLCD_BLACK);
-		MLCDWriteUFloat(0.0123,101,24,MLCD_BLACK);
-		MLCDWriteUFloat(0,121,24,MLCD_BLACK);
-		MLCDWriteUFloat(12345.789,141,24,MLCD_BLACK);*/
+		MLCDDrawColumn(220,14,5,rand()%201,false);
+		MLCDDrawColumn(220,20,6,rand()%201,false);
+		MLCDDrawColumn(220,27,7,rand()%201,false);
+		
+		MLCDDrawColumn(220,35,8,rand()%201,false);
+		
+	/*	//MLCDClear();
+		MLCDWriteString("ADC_RESULT_1: ",1,1,MLCD_BLACK);
+		MLCDWriteString("ADC_V_1: ",31,1,MLCD_BLACK);
+		MLCDWriteString("ADC_COMP_1: ",61,1,MLCD_BLACK);
+		MLCDWriteString("ADC_RESULT_2: ",111,1,MLCD_BLACK);
+		MLCDWriteString("ADC_V_2: ",141,1,MLCD_BLACK);
+		MLCDWriteString("ADC_COMP_2: ",171,1,MLCD_BLACK);
+	
 		//MLCDWriteDouble((getADCVoltage(ADC_PIN8)*1000)/7.43334, 1, 27, MLCD_BLACK);
 		//MLCDWriteDouble(41.2*getADCVoltage(ADC_PIN9), 31, 27, MLCD_BLACK);
+		double v1 = getADCVoltage(ADC_PIN1,1024.0);
 		MLCDWriteDouble(getADCManualValue(ADC_PIN1,128.0), 1, 27, MLCD_BLACK);
-		//MLCDWriteDouble(getADCVoltage(ADC_PIN1,128.0)*1000/8.3737, 31, 27, MLCD_BLACK);
-		MLCDWriteDouble(getADCVoltage(ADC_PIN1,128.0), 31, 27, MLCD_BLACK);
-		MLCDWriteDouble(getADCManualValue(ADC_PIN2,128.0), 71, 27, MLCD_BLACK);
-		//MLCDWriteDouble(43.138*getADCVoltage(ADC_PIN2,128.0), 101, 27, MLCD_BLACK);
-		MLCDWriteDouble(getADCVoltage(ADC_PIN2,128.0), 101, 27, MLCD_BLACK);
+		MLCDWriteDouble(v1, 31, 27, MLCD_BLACK);
+		MLCDWriteDouble(v1*1000/18.666667, 61, 27, MLCD_BLACK);
+		
+		MLCDWriteLine(0xff,95);
+		
+		double v2 = getADCVoltage(ADC_PIN2,1024.0);
+		MLCDWriteDouble(getADCManualValue(ADC_PIN2,128.0), 111, 27, MLCD_BLACK);
+		MLCDWriteDouble(v2, 141, 27, MLCD_BLACK);
+		MLCDWriteDouble(31*v2, 171, 27, MLCD_BLACK);
+		
 		MLCDWriteString("Va",1,47,MLCD_BLACK);
 		MLCDWriteString("V",31,47,MLCD_BLACK);
-		MLCDWriteString("Va",71,47,MLCD_BLACK);
-		MLCDWriteString("V",101,49,MLCD_BLACK);
+		MLCDWriteString("Va",111,47,MLCD_BLACK);
+		MLCDWriteString("V",141,47,MLCD_BLACK);
 		
-		//MLCDWriteUFloat(getCalibrationData(),141,24,MLCD_BLACK);
+		//MLCDWriteUInt(getADCVoltage(ADC_PIN3,128.0)*20, 201, 40, MLCD_BLACK);
+		//MLCDWriteString("%",201,47,MLCD_BLACK);
+		
+		//MLCDWriteUFloat(getCalibrationData(),141,24,MLCD_BLACK);*/
 		
 		MLCDRefreshFrame();
-		//delay_ms(10);
+		delay_ms(500);
+		
+		if(gpio_pin_is_low(GPIO_PUSH_BUTTON_1) && gpio_pin_is_low(GPIO_PUSH_BUTTON_0)){
+			playSnake();
+		}
 	}
 	
 }

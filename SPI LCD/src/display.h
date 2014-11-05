@@ -60,6 +60,7 @@ void MLCDWriteString(char *str, uint8_t row, uint8_t column, bool white);
 void MLCDWriteUInt(uint64_t num, uint8_t row, uint8_t column, bool white);
 void MLCDWriteDouble(double num, uint8_t row, uint8_t column, bool white);
 void MLCDDrawSquare(uint8_t sizeInBytes, uint8_t row, uint8_t column, bool white);
+void MLCDDrawColumn(uint8_t row, uint8_t column, uint8_t size, uint8_t height, bool white);
 void MLCDDrawSnakeBait(uint8_t row, uint8_t column, bool white);
 
 #endif /* DISPLAY_H_ */

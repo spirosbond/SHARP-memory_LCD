@@ -48,7 +48,7 @@ void MLCDInit(void){
 	
 	//delay_ms(100);
 	
-	pwm_init(&pwm_cfg, PWM_TCE0, PWM_CH_A, MLCD_EXTCOMIN_FREQ);
+	pwm_init(&pwm_cfg, PWM_TCC0, PWM_CH_C, MLCD_EXTCOMIN_FREQ);
 	pwm_start(&pwm_cfg, MLCD_EXTCOMIN_DC);
 	
 	//delay_ms(100);
@@ -209,6 +209,38 @@ void MLCDDrawSquare(uint8_t sizeInBytes, uint8_t row, uint8_t column, bool white
 			}
 		tempRow++;
 		if (tempRow%(MLCD_YRES+1) == 0)	tempRow = 1;
+		}
+		
+		tempColumn++;
+		if (tempColumn%(MLCD_BYTES_LINE+1) == 0)	tempColumn = 1;
+		tempRow = row;
+	}
+}
+
+void MLCDDrawColumn(uint8_t row, uint8_t column, uint8_t sizeInBytes, uint8_t height, bool white){
+	/*uint16_t i;
+	int16_t tempRow = row - 8*sizeInBytes + 1;
+	for(i=0; i<height; i++, tempRow--){
+		if(tempRow<=0){
+			tempRow = MLCD_YRES + tempRow;
+		}
+		MLCDDrawSquare(sizeInBytes,tempRow, column, white);
+		
+	}*/
+	
+	uint8_t tempRow = row, tempColumn = column;
+	uint16_t i,j;
+	for(i=0;i<sizeInBytes;i++){
+		
+		for(j=0;j<height;j++){
+			if(white){
+				MLCDUpdateByte(MLCD_BYTE_WHITE, tempRow, tempColumn);
+			}
+			else{
+				MLCDUpdateByte(MLCD_BYTE_BLACK, tempRow, tempColumn);
+			}
+			tempRow--;
+			if (tempRow == 0)	tempRow = MLCD_YRES;
 		}
 		
 		tempColumn++;
