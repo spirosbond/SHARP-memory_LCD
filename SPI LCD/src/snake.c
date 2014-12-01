@@ -12,8 +12,10 @@
 #include "led.h"
 #include "display.h"
 #include "snake.h"
+#include "fonts.h"
 
-int16_t i;
+int16_t i, j;
+bool released = true;
 
 void playSnake(void){
 	uint8_t length = 4, row = 121, column = 25, direction = DIR_RIGHT;
@@ -23,7 +25,7 @@ void playSnake(void){
 	
 	//ioport_configure_port_pin(&PORTF, PIN1_bm, IOPORT_DIR_INPUT);
 	//ioport_configure_port_pin(&PORTF, PIN2_bm, IOPORT_DIR_INPUT);
-	MLCDClear();
+	MLCDClearAll();
 	
 	for(i=0;i<length;i++){
 		positionX[i]=column;
@@ -131,26 +133,41 @@ void playSnake(void){
 		
 		if(lost){
 			
-			MLCDWriteString("You Lost!",20,19,false);
+			MLCDWriteString("You Lost!",FONT_SIZE_NORMAL,20,19,false);
 			//MLCDWriteString("Score: ",37,19,false);
 			//MLCDWriteString((char)length,37,26,false);
 			MLCDRefreshFrame();
 			delay_ms(2000);
+			MLCDClearAll();
 			return;
 		}
 		
 		for(i=1;i>0;i++){
-			
-			if(gpio_pin_is_low(GPIO_PUSH_BUTTON_1)){
+			if(gpio_pin_is_high(MLCD_PB0) && gpio_pin_is_high(MLCD_PB2)){
+				released = true;
+			}
+			if(released && gpio_pin_is_low(MLCD_PB2)){
 				direction++;
 				if(direction%4 == 0) direction = 0;
+				//released = false;
+				/*for(j=1;j>0;j++){
+					if(gpio_pin_is_high(MLCD_PB0) && gpio_pin_is_high(MLCD_PB2)){
+						released = true;
+					}
+				}*/
 				delay_ms(50);
 				break;
 			}
-			if(gpio_pin_is_low(GPIO_PUSH_BUTTON_0)){
+			if(released && gpio_pin_is_low(MLCD_PB0)){
 				
 				direction--;
 				if(direction > 3) direction = 3;
+				//released = false;
+				/*for(j=1;j>0;j++){
+					if(gpio_pin_is_high(MLCD_PB0) && gpio_pin_is_high(MLCD_PB2)){
+						released = true;
+					}
+				}*/
 				delay_ms(50);
 				break;
 			}

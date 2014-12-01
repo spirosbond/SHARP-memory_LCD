@@ -54,48 +54,24 @@ void adc_init(void){
 	//adcch_set_pin_scan(&adcch_conf, ADCCH_POS_PIN8, ADCCH_POS_PIN9);
 	adc_write_configuration(&MY_ADC, &adc_conf);
 	adcch_write_configuration(&MY_ADC, ADC_CH0, &adcch_conf);
+	
+	ioport_configure_port_pin(&PORTF, PIN0_bm, IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
+	ioport_configure_port_pin(&PORTF, PIN1_bm, IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
 }
 
-double getADCVoltage(uint8_t adc_pin, float oversampling){
-	/*switch(adc_pin){
-		case ADCCH_POS_PIN4:
-			return ADC_RESULT_4*ADC_REF_VOLTAGE/ADC_RESULT_MAX;
-			break;
-		case ADCCH_POS_PIN5:
-			return ADC_RESULT_5*ADC_REF_VOLTAGE/ADC_RESULT_MAX;
-			break;
-		default:
-			LED_On(LED1);
-			return 0;
-	}*/
+double getADCVoltage(uint8_t adc_pin, double oversampling){
 	
-	return getADCManualValue(adc_pin, oversampling)*ADC_REF_VOLTAGE/(ADC_RESULT_MAX);
+	return getADCValue(adc_pin, oversampling)*ADC_REF_VOLTAGE/(ADC_RESULT_MAX);
 	
 }
-
-/*uint16_t getLastADCValue(uint8_t adc_pin){
-	
-	switch(adc_pin){
-		case ADC_PIN1:
-			return ADC_RESULT_4;
-			break;
-		case ADC_PIN2:
-			return ADC_RESULT_5;
-			break;
-		default:
-			LED_On(LED1);
-			return 0;
-	}
-	
-}*/
 
 uint16_t getCalibrationData(void){
 	return adc_get_calibration_data(ADC_CAL_ADCA);
 }
 
-double getADCManualValue(uint8_t adc_pin, float oversampling){
+double getADCValue(uint8_t adc_pin, double oversampling){
 	uint16_t i;
-	double result = 0;
+	double result = 0.0;
 	int16_t ADCValue = 0;
 	
 	adcch_read_configuration(&MY_ADC, ADC_CH0, &adcch_conf);
@@ -108,9 +84,61 @@ double getADCManualValue(uint8_t adc_pin, float oversampling){
 	for(i=0; i<oversampling; i++){
 		adc_start_conversion(&MY_ADC, ADC_CH0);
 		adc_wait_for_interrupt_flag(&MY_ADC, ADC_CH0);
-		ADCValue = adc_get_result(&MY_ADC, ADC_CH0);	//Has to be done in two steps, to keep the minus (-) sign.
+		ADCValue = adc_get_result(&MY_ADC, ADC_CH0); //Has to be done in two steps, to keep the minus (-) sign.
 		result += ADCValue/oversampling;
 	}
 
 	return result;
+}
+
+double getBatteryADCValue(void){
+	gpio_set_pin_high(ADC_BAT_CTRL);
+	delay_ms(1);
+	return getADCValue(ADC_PIN_BAT, ADC_DEFAULT_OSMPL);
+	gpio_set_pin_low(ADC_BAT_CTRL);
+}
+
+double getPVVADCValue(void){
+	gpio_set_pin_high(ADC_PVV_CTRL);
+	delay_ms(1);
+	return getADCValue(ADC_PIN_PVV, ADC_DEFAULT_OSMPL);
+	gpio_set_pin_low(ADC_PVV_CTRL);
+}
+
+double getPVCADCValue(void){
+	return getADCValue(ADC_PIN_PVC, ADC_DEFAULT_OSMPL);
+}
+
+double getBatteryADCVoltage(void){
+	return getBatteryADCValue()*ADC_REF_VOLTAGE/(ADC_RESULT_MAX);
+}
+
+double getPVVADCVoltage(void){
+	return getPVVADCValue()*ADC_REF_VOLTAGE/(ADC_RESULT_MAX);
+}
+
+double getPVCADCVoltage(void){
+	return getPVCADCValue()*ADC_REF_VOLTAGE/(ADC_RESULT_MAX);
+}
+
+double getBatteryVoltage(void){
+	return getBatteryADCVoltage()*ADC_BAT_RATIO;
+}
+
+double getPVVVoltage(void){
+	return getPVVADCVoltage()*ADC_PVV_RATIO;
+}
+
+double getPVCVoltage(void){
+	return getPVCADCVoltage();
+}
+
+double getPVCCurrent(void){
+	return (getPVCADCVoltage() * ADC_PVC_RATIO) / ADC_PVC_RSENSE;
+}
+
+double getPVPower(void){
+	double voltage = getPVVVoltage();
+	double current = getPVCCurrent();
+	return voltage*current;
 }
