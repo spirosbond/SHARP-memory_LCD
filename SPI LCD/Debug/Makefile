@@ -75,6 +75,7 @@ SUBDIRS :=  \
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
+../src/eepromUtils.c \
 ../src/fontsLarge.c \
 ../src/fontUtils.c \
 ../src/measurements.c \
@@ -105,6 +106,7 @@ ASM_SRCS +=
 
 
 OBJS +=  \
+src/eepromUtils.o \
 src/fontsLarge.o \
 src/fontUtils.o \
 src/measurements.o \
@@ -128,6 +130,7 @@ src/display.o \
 src/main.o
 
 OBJS_AS_ARGS +=  \
+src/eepromUtils.o \
 src/fontsLarge.o \
 src/fontUtils.o \
 src/measurements.o \
@@ -151,6 +154,7 @@ src/display.o \
 src/main.o
 
 C_DEPS +=  \
+src/eepromUtils.d \
 src/fontsLarge.d \
 src/fontUtils.d \
 src/measurements.d \
@@ -174,6 +178,7 @@ src/display.d \
 src/main.d
 
 C_DEPS_AS_ARGS +=  \
+src/eepromUtils.d \
 src/fontsLarge.d \
 src/fontUtils.d \
 src/measurements.d \
@@ -207,6 +212,13 @@ OUTPUT_FILE_DEP:= ./makedep.mk
 LIB_DEP+= 
 
 # AVR32/GNU C Compiler
+src/eepromUtils.o: ../src/eepromUtils.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 4.8.1
+	$(QUOTE)C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.1056\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=XMEGA_C3_XPLAINED -DIOPORT_XMEGA_COMPAT  -I"../common/applications/user_application/atxmega384c3_xmega_c3_xplained/config" -I"../src/ASF/xmega/utils" -I"../src/config" -I"../src/ASF/common/boards" -I"../src/ASF/xmega/boards" -I"../src/ASF/xmega/utils/preprocessor" -I"../src/ASF/common/utils" -I"../src/ASF/common/services/ioport" -I"../src" -I"../src/ASF/xmega/boards/xmega_c3_xplained" -I"../src/ASF/common/services/gpio" -I"../src/ASF/xmega/drivers/cpu" -I"../src/ASF/xmega/drivers/nvm" -I"../src/ASF/xmega/drivers/pmic" -I"../src/ASF/common/services/clock" -I"../src/ASF/xmega/drivers/sleep" -I"../src/ASF/xmega/drivers/tc" -I"../src/ASF/common/services/sleepmgr" -I"../src/ASF/common/services/delay" -I"../src/ASF/xmega/services/pwm" -I"../src/ASF/common/services/spi" -I"../src/ASF/xmega/drivers/spi" -I"../src/ASF/common/services/spi/xmega_spi" -I"../src/ASF/xmega/drivers/adc"  -O1 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g3 -Wall -mmcu=atxmega384c3 -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
 src/fontsLarge.o: ../src/fontsLarge.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 4.8.1

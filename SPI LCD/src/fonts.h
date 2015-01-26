@@ -18,7 +18,7 @@
 /**
 *   Get the pixel representation of a character
 *   char c: Character to be translated to pixel image
-*	uint8_t* nColumnsInBytes: Reference call to get the sumber of bytes per character row
+*	uint8_t* nColumnsInBytes: Reference call to get the number of bytes per character row
 */
 const uint8_t * getCharacterImage(char c, uint8_t* nColumnsInBytes);
 

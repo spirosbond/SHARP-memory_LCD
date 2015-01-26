@@ -17,13 +17,13 @@ char getDigitAsChar(uint8_t n);
 
 /**
 *   Returns the unsigned integer as string
-*   uint8_t n: Number to be translated to string
+*   uint8_t num: Number to be translated to string
 */
-char * getIntAsString(int n);
+char * getIntAsString(int num);
 
 /**
 *   Returns the double as string
-*   uint8_t n: Number to be translated to string
+*   uint8_t num: Number to be translated to string
 */
 char * getDoubleAsString(double num);
 

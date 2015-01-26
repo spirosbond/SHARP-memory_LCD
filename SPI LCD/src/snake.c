@@ -139,6 +139,8 @@ void playSnake(void){
 			MLCDRefreshFrame();
 			delay_ms(2000);
 			MLCDClearAll();
+			sysclk_set_source(CONFIG_SYSCLK_SOURCE);
+			sysclk_set_prescalers(CONFIG_SYSCLK_PSADIV, CONFIG_SYSCLK_PSBCDIV);
 			return;
 		}
 		

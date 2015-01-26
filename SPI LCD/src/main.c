@@ -27,7 +27,7 @@
  */
 
 
-#define F_CPU 2000000/4
+#define F_CPU 2000000/2
 
 #include <asf.h>
 #include <stdio.h>
@@ -44,23 +44,28 @@
 #define PB0	IOPORT_CREATE_PIN(PORTF, 6)
 #define PB1	IOPORT_CREATE_PIN(PORTF, 7)
 
+#define MAX_VOLTAGE	30
+#define MAX_CURRENT	6
+#define MAX_POWER	50
+#define MAX_BAT		5
+
 void showRandomFrame(void);
 void BarScreen(void);
-void showBattery(void);
+void showBattery(double b);
 void showArrows(void);
 void PowerScreen(void);
 void PORT_ConfigureInterrupt0(PORT_t * port, PORT_INT0LVL_t intLevel, uint8_t pinMask);
 void PORT_ConfigureInterrupt1(PORT_t * port, PORT_INT1LVL_t intLevel, uint8_t pinMask);
 
 int16_t i,j;
-double powerHist[50];
+double voltage, current, power, battery, oldBattery = 0, maxVoltage=0, maxCurrent=0, maxPower=0, powerHist[50];
+
 uint8_t powerTail = 0;
 uint8_t screen = 0;
 
 
 int main (void)
 {
-	
 	board_init();
 	ioport_set_pin_dir(PB0, IOPORT_DIR_INPUT);
 	ioport_set_pin_mode(PB0, IOPORT_MODE_PULLUP);
@@ -80,37 +85,57 @@ int main (void)
 	cpu_irq_enable();
 	
 	MLCDInit();
-	MLCDClearAll();
 	MLCDTurnOn();
+	MLCDClearAll();
 	
 	adc_init();
-	//adc_enable(&MY_ADC);
 	
 	MLCDShowImecLogo();
 	//delay_ms(2000);
 	MLCDClearFrame();
 	
 	while(1){
+		//LED_Toggle(LED0);
 		
-		//MLCDWriteString("TFPV Group",FONT_SIZE_LARGE,1,1,MLCD_BLACK);
+		//MLCDWriteDouble(getBatteryADCVoltage(),	FONT_SIZE_NORMAL,	18+FONT_SIZE_NORMAL,	40,	MLCD_BLACK);
 		
-		//showBattery();
-		//showArrows();
-		/*if(screen%4 == 0)		PowerScreen();
-		else if (screen%4 == 1)	BarScreen();
-		else if (screen%4 == 2)	PowerScreen();
-		else if (screen%4 == 3)	BarScreen();
-		*/
-		//MLCDRefreshFrame();
-		//MLCDClearFrame();
+		//LED_On(LED0);
 		
+		voltage = getPVVVoltage();
+		current = getPVCCurrent();
+		power = voltage*current;
+		battery = getBatteryVoltage();
+		
+		if(voltage > maxVoltage)	maxVoltage = voltage;
+		if(current > maxCurrent)	maxCurrent = current;
+		if(power > maxPower)		maxPower = power;
+		
+		for(i=powerTail; i>0; i--){
+			powerHist[i] = powerHist[i-1];
+		}
+		
+		powerHist[0] = power;
+		
+		if(screen%2 == 0)		PowerScreen();
+		else if (screen%2 == 1)	BarScreen();
+		//else if (screen%4 == 2)	PowerScreen();
+		//else if (screen%4 == 3)	BarScreen();
+		
+		if(powerTail!=49)	powerTail++;
+		
+		MLCDWriteString("TFPV Group",FONT_SIZE_LARGE,1,1,MLCD_BLACK);
+		showArrows();
+		showBattery(battery);
+		MLCDRefreshFrame();
+		MLCDClearFrame();
+		//LED_Off(LED1);
 		if(gpio_pin_is_low(PB1) && gpio_pin_is_low(PB0)){
 			playSnake();
 		}
-		sleep_set_mode(SLEEP_SMODE_PDOWN_gc);
-		sleep_enable();
-		sleep_enter();
-		sleep_disable();
+		//sleep_set_mode(SLEEP_SMODE_PDOWN_gc);
+		//sleep_enable();
+		//sleep_enter();
+		//sleep_disable();
 	}
 	
 }
@@ -124,15 +149,20 @@ ISR(PORTF_INT0_vect)
 		LED_On(LED0);
 		screen++;		
 	} else if(gpio_pin_is_low(MLCD_PB1)){
-		MLCDShowImecLogo();
-		delay_ms(1000);
-		MLCDClearFrame();
+		//showRandomFrame();
+		maxVoltage = 0;
+		maxCurrent = 0;
+		maxPower = 0;
+		//MLCDRefreshFrame();
+		//MLCDClearFrame();
 	} else if(gpio_pin_is_low(MLCD_PB2)){
 		//LED_Off(LED0);
 		LED_On(LED1);
 		screen--;
 	} else if(gpio_pin_is_low(MLCD_PB3)){
-		
+		MLCDShowImecLogo();
+		delay_ms(1000);
+		MLCDClearFrame();
 	} else{
 		LED_Off(LED1);
 		LED_Off(LED0);	
@@ -140,68 +170,81 @@ ISR(PORTF_INT0_vect)
 }
 
 void PowerScreen(void){
+	//LED_On(LED0);
+	//double power = getPVPower();
+	//LED_Off(LED0);
 	
-	double power = getPVPower();
-	
-	for(i=powerTail; i>0; i--){
-		powerHist[i] = powerHist[i-1];
-	}
-	
-	powerHist[0] = power;
 	
 	for(i=0; i<=powerTail; i++){
-		MLCDDrawColumn(MLCD_YRES,	MLCD_BYTES_LINE - i,	1,	(MLCD_YRES/2)*powerHist[i]/215,	MLCD_BLACK);
+		MLCDDrawColumn(MLCD_YRES,	MLCD_BYTES_LINE - i,	1,	(MLCD_YRES/2)*powerHist[i]/MAX_POWER,	MLCD_BLACK);
 	}
 	
-	if(powerTail!=49)	powerTail++;
 	
 	MLCDWriteDouble(powerHist[0],	FONT_SIZE_LARGE,	MLCD_YRES/3-FONT_SIZE_LARGE/2,	MLCD_BYTES_LINE/2-12,	MLCD_BLACK);
 	MLCDWriteString("mW",			FONT_SIZE_LARGE,	MLCD_YRES/3-FONT_SIZE_LARGE/2,	MLCD_BYTES_LINE/2+6,	MLCD_BLACK);
+	MLCDWriteDouble(maxPower,		FONT_SIZE_NORMAL,	MLCD_YRES-FONT_SIZE_NORMAL+1,		1,		MLCD_WHITE);
 }
 
-void showBattery(void){
-	uint8_t battery = 100*getBatteryVoltage()/5.00;
+void showBattery(double b){
+	uint8_t battery = 100*b/MAX_BAT;
 	uint8_t numOfDigits = log10(battery) + 1;
 	
 	MLCDWriteInt(battery,	FONT_SIZE_NORMAL,	18,	49 - 2*numOfDigits,	MLCD_BLACK);
 	MLCDWriteString("%",	FONT_SIZE_NORMAL,	18,	49,					MLCD_BLACK);
 	MLCDDrawBattery(1, 47, battery, false);
+
+	
+	if(b > oldBattery + 0.003){
+		MLCDWriteString("+", FONT_SIZE_NORMAL, 1, 46, MLCD_BLACK);
+		oldBattery = b;
+	}
+	else if(b < oldBattery - 0.003){
+		MLCDWriteString("-", FONT_SIZE_NORMAL, 1, 46, MLCD_BLACK);
+		oldBattery = b;
+	}
+	
 }
 
 void BarScreen(void){
-		
-	double voltage = getPVVVoltage();
-	double current = getPVCCurrent();
-	double power = voltage*current;
-
+	//LED_On(LED0);	
+	
+	//LED_Off(LED0);
+	
+	MLCDDrawColumn(200,	4,	10,	156 * voltage/MAX_VOLTAGE,	false);
+	MLCDDrawColumn(200,	20,	10,	156 * current/MAX_CURRENT,	false);
+	MLCDDrawColumn(200,	36,	10,	156 * power/MAX_POWER,	false);
+	
 	MLCDWriteString("Voltage",	FONT_SIZE_NORMAL,	207,	4,	MLCD_BLACK);
 	MLCDWriteString("Current",	FONT_SIZE_NORMAL,	207,	20,	MLCD_BLACK);
-	MLCDWriteString("Power",	FONT_SIZE_NORMAL,	207,	38,	MLCD_BLACK);
+	MLCDWriteString("Power",	FONT_SIZE_NORMAL,	207,	37,	MLCD_BLACK);
 	
-	MLCDWriteDouble(voltage,	FONT_SIZE_NORMAL,	224,	5,	MLCD_BLACK);
+	MLCDWriteDouble(voltage,	FONT_SIZE_NORMAL,	200-FONT_SIZE_NORMAL,	4 + 2 - log10(voltage) + 1,	MLCD_WHITE);
 	MLCDWriteString("V",		FONT_SIZE_NORMAL,	224,	13,	MLCD_BLACK);
 	
-	MLCDWriteDouble(current,	FONT_SIZE_NORMAL,	224,	19,	MLCD_BLACK);
+	MLCDWriteDouble(current,	FONT_SIZE_NORMAL,	200-FONT_SIZE_NORMAL,	20 + 2 - log10(current) + 1,	MLCD_WHITE);
 	MLCDWriteString("mA",	FONT_SIZE_NORMAL,		224,	28,	MLCD_BLACK);
 
-	MLCDWriteDouble(power,	FONT_SIZE_NORMAL,	224,	34,	MLCD_BLACK);
+	MLCDWriteDouble(power,	FONT_SIZE_NORMAL,		200-FONT_SIZE_NORMAL,	36 + 2 - log10(power) + 1,	MLCD_WHITE);
 	MLCDWriteString("mW",	FONT_SIZE_NORMAL,	224,	45,	MLCD_BLACK);
 	
-	MLCDDrawColumn(200,	6,	8,	166 * voltage/30,		false);
-	MLCDDrawColumn(200,	21,	8,	166 * current/100,	false);
-	MLCDDrawColumn(200,	38,	8,	166 * power/3000,		false);
+	MLCDWriteDouble(maxVoltage,	FONT_SIZE_NORMAL,	224,	4,	MLCD_BLACK);
+	MLCDWriteDouble(maxCurrent,	FONT_SIZE_NORMAL,	224,	19,	MLCD_BLACK);
+	MLCDWriteDouble(maxPower,	FONT_SIZE_NORMAL,	224,	34,	MLCD_BLACK);
 	
 }
 
 void showRandomFrame(void){
 
-	uint8_t data2[MLCD_YRES][MLCD_BYTES_LINE];
-	for(i=0;i<MLCD_YRES;i++){
+	uint8_t data2[MLCD_BYTES_LINE];
+	//for(i=0;i<MLCD_YRES;i++){
 		for(j=0;j<MLCD_BYTES_LINE;j++){
-			data2[i][j] = rand()%256;
+			data2[j] = rand()%256;
 		}
+		
+	//}
+	for(i=0;i<MLCD_YRES;i++){
+		MLCDWriteLine(data2,i+1);
 	}
-	MLCDWriteFrame(data2);
 }
 
 void showArrows(void){

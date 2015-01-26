@@ -18,8 +18,8 @@
 //LCD resolution
 #define MLCD_XRES		400 //pixels per horizontal line
 #define MLCD_YRES		240 //pixels per vertical line
-#define MLCD_BYTES_LINE	(MLCD_XRES/8) //number of bytes in a line
-#define MLCD_FRAME_SIZE (MLCD_YRES * MLCD_BYTES_LINE)
+#define MLCD_BYTES_LINE	(MLCD_XRES/8) //number of bytes in a line is 50 B
+#define MLCD_FRAME_SIZE (MLCD_YRES * MLCD_BYTES_LINE) //frame size in pixels
 //defines the VCOM bit in the command word that goes to the LCD
 #define VCOM_HI				0x40
 #define VCOM_LO				0x00

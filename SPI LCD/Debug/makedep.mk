@@ -2,6 +2,8 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
+src\eepromUtils.c
+
 src\fontsLarge.c
 
 src\fontUtils.c

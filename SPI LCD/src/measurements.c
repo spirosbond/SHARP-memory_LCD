@@ -14,11 +14,13 @@
 
 struct adc_config adc_conf;
 struct adc_channel_config adcch_conf;
+double batteryADCValue = 0, pvvADCValue = 0, pvcADCValue = 0;
+uint8_t ADC_PIN = ADC_PIN_PVV;
 
-/*static void adc_handler(ADC_t *adc, uint8_t ch_mask, adc_result_t result)
+static void adc_handler(ADC_t *adc, uint8_t ch_mask, adc_result_t result)
 {
 	
-	switch(multiplexer){
+	/*switch(multiplexer){
 		case ADCCH_POS_PIN4:
 			multiplexer = ADCCH_POS_PIN5;
 			ADC_RESULT_4 = result;
@@ -34,29 +36,52 @@ struct adc_channel_config adcch_conf;
 	adcch_write_configuration(&MY_ADC, ADC_CH0, &adcch_conf);
 	
 	ADC_RESULT_4 = result;
+	*/
 	
+	/*if(ADC_PIN == ADC_PIN_PVV){
+		batteryADCValue = result;
+		ADC_PIN = ADC_PIN_PVC;
+		adcch_set_input(&adcch_conf,ADC_PIN,ADCCH_NEG_NONE, ADC_GAIN);
+		adcch_write_configuration(&MY_ADC, ADC_CH0, &adcch_conf);
+	}else if (ADC_PIN == ADC_PIN_PVC){
+		pvvADCValue = result;
+		ADC_PIN = ADC_PIN_BAT;
+		adcch_set_input(&adcch_conf,ADC_PIN,ADCCH_NEG_NONE, ADC_GAIN);
+		adcch_write_configuration(&MY_ADC, ADC_CH0, &adcch_conf);
+	} else if (ADC_PIN == ADC_PIN_BAT){
+		pvcADCValue = result;
+		ADC_PIN = ADC_PIN_PVV;
+		adcch_set_input(&adcch_conf,ADC_PIN,ADCCH_NEG_NONE, ADC_GAIN);
+		adcch_write_configuration(&MY_ADC, ADC_CH0, &adcch_conf);
+	}
+	//if (ch_mask==1)	{
+		//batteryADCValue = result;
+	//}
+	*/
 	
-}*/
+}
 
 void adc_init(void){
 	
 	adc_read_configuration(&MY_ADC, &adc_conf);
 	adcch_read_configuration(&MY_ADC, ADC_CH0, &adcch_conf);
-	adc_set_conversion_parameters(&adc_conf, ADC_SIGN_ON, ADC_RES_12, ADC_REFSEL_INT1V_gc);
+	adc_set_conversion_parameters(&adc_conf, ADC_SIGN_ON, ADC_RES_12, ADC_REF_BANDGAP);
 	adc_set_conversion_trigger(&adc_conf, ADC_TRIG_MANUAL, 1, 0);
+	//adc_set_conversion_trigger(&adc_conf, ADC_TRIG_FREERUN, 1, 0);
 	adc_set_clock_rate(&adc_conf, ADC_FREQ);
 	//adc_enable_internal_input(&adc_conf, ADC_INT_BANDGAP);
-	//adc_set_callback(&MY_ADC, &adc_handler);
-	//adcch_enable_interrupt(&adcch_conf);
-	//adcch_set_input(&adcch_conf, multiplexer, ADCCH_NEG_NONE, 1);
+	adc_set_callback(&MY_ADC, &adc_handler);
+	adcch_enable_interrupt(&adcch_conf);
+	adc_set_current_limit(&adc_conf,ADC_CURRENT_LIMIT_HIGH);
+	//adcch_set_input(&adcch_conf, ADC_PIN_PVV, ADCCH_NEG_NONE, ADC_GAIN);
 	//adcch_enable_oversampling(&adcch_conf,ADC_SAMPNUM_1024X,16);
 	//adcch_set_input(&adcch_conf, ADCCH_POS_PIN9, ADCCH_NEG_NONE, 1);
-	//adcch_set_pin_scan(&adcch_conf, ADCCH_POS_PIN8, ADCCH_POS_PIN9);
+	//adcch_set_pin_scan(&adcch_conf, ADC_PIN_PVV, ADC_PIN_PVV);
 	adc_write_configuration(&MY_ADC, &adc_conf);
 	adcch_write_configuration(&MY_ADC, ADC_CH0, &adcch_conf);
 	
-	ioport_configure_port_pin(&PORTF, PIN0_bm, IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
-	ioport_configure_port_pin(&PORTF, PIN1_bm, IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
+	ioport_configure_port_pin(&PORTF, PIN0_bm, IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
+	ioport_configure_port_pin(&PORTF, PIN1_bm, IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
 }
 
 double getADCVoltage(uint8_t adc_pin, double oversampling){
@@ -78,35 +103,56 @@ double getADCValue(uint8_t adc_pin, double oversampling){
 	adcch_set_input(&adcch_conf, adc_pin, ADCCH_NEG_NONE, ADC_GAIN);
 	adcch_write_configuration(&MY_ADC, ADC_CH0, &adcch_conf);
 	
+	adc_enable(&MY_ADC);
+	
+	sleep_set_mode(SLEEP_SMODE_IDLE_gc);
+	sleep_enable();
 	adc_start_conversion(&MY_ADC, ADC_CH0);
-	adc_wait_for_interrupt_flag(&MY_ADC, ADC_CH0);
+	sleep_enter();
+	sleep_disable();
+	
+	//adc_start_conversion(&MY_ADC, ADC_CH0);
+	//adc_wait_for_interrupt_flag(&MY_ADC, ADC_CH0);
 	
 	for(i=0; i<oversampling; i++){
+		sleep_set_mode(SLEEP_SMODE_IDLE_gc);
+		sleep_enable();
 		adc_start_conversion(&MY_ADC, ADC_CH0);
-		adc_wait_for_interrupt_flag(&MY_ADC, ADC_CH0);
+		sleep_enter();
+		sleep_disable();
+		//adc_start_conversion(&MY_ADC, ADC_CH0);
+		//adc_wait_for_interrupt_flag(&MY_ADC, ADC_CH0);
 		ADCValue = adc_get_result(&MY_ADC, ADC_CH0); //Has to be done in two steps, to keep the minus (-) sign.
 		result += ADCValue/oversampling;
 	}
-
+	
+	adc_disable(&MY_ADC);
 	return result;
 }
 
 double getBatteryADCValue(void){
-	gpio_set_pin_high(ADC_BAT_CTRL);
-	delay_ms(1);
-	return getADCValue(ADC_PIN_BAT, ADC_DEFAULT_OSMPL);
-	gpio_set_pin_low(ADC_BAT_CTRL);
+	//gpio_set_pin_high(ADC_BAT_CTRL);
+	//delay_ms(50);
+	double v = getADCValue(ADC_PIN_BAT, ADC_DEFAULT_OSMPL);
+	//gpio_set_pin_low(ADC_BAT_CTRL);
+	return v;
+	//return batteryADCValue;
+	
 }
 
 double getPVVADCValue(void){
-	gpio_set_pin_high(ADC_PVV_CTRL);
-	delay_ms(1);
-	return getADCValue(ADC_PIN_PVV, ADC_DEFAULT_OSMPL);
-	gpio_set_pin_low(ADC_PVV_CTRL);
+	//gpio_set_pin_high(ADC_PVV_CTRL);
+	//delay_ms(50);
+	double v = getADCValue(ADC_PIN_PVV, ADC_LOW_OSMPL);
+	//gpio_set_pin_low(ADC_PVV_CTRL);
+	return v;
+	//return pvvADCValue;
+	
 }
 
 double getPVCADCValue(void){
 	return getADCValue(ADC_PIN_PVC, ADC_DEFAULT_OSMPL);
+	//return pvcADCValue;
 }
 
 double getBatteryADCVoltage(void){

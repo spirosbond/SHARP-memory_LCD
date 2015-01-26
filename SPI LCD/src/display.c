@@ -145,7 +145,7 @@ void MLCDAddLine(uint8_t data[MLCD_BYTES_LINE], uint8_t lineNum){
 	spi_write_single(&SPI_MDL, reverseByte(lineNum));
 	while(!spi_is_tx_ok(&SPI_MDL));
 	spi_write_packet(&SPI_MDL, data, MLCD_BYTES_LINE);
-	memcpy(&frame[lineNum-1][0],data,sizeof(data[0])*MLCD_BYTES_LINE);
+	memcpy(&frame[lineNum-1][0],data,sizeof(data[0])*MLCD_BYTES_LINE);	//TODO: Add if clause to perform this only if needed. Pass a boolean variable from the caller if data is part of the frame.
 	while(!spi_is_tx_ok(&SPI_MDL));
 	spi_write_single(&SPI_MDL, MLCD_TR);
 	while(!spi_is_tx_ok(&SPI_MDL));

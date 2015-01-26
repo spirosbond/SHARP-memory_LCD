@@ -116,7 +116,7 @@ char * getIntAsString(int num){
 	
 	return charArray;
 }
-
+	
 char * getDoubleAsString(double num){
 	/*char * charArrayZero = calloc(2, sizeof(char));
 	if(num == 0){
